@@ -1,0 +1,2205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>HoloOracle · TCG Market</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bebas+Neue&family=Inter:wght@400;500;600;700;900&display=swap');
+
+:root {
+  --bg: #0d0d12;
+  --surface: #14141c;
+  --card: #1a1a26;
+  --border: rgba(255,255,255,0.07);
+  --up: #00f0a0;
+  --down: #ff3864;
+  --flat: #4a4a6a;
+  --silver: #c8d0e0;
+  --gold: #f0c040;
+  --holo: #a78bfa;
+  --holo2: #60a5fa;
+  --text: #f0f0ff;
+  --muted: #5a5a7a;
+  --tg-safe: env(safe-area-inset-bottom, 0px);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+}
+
+/* ── PHONE SHELL ─────────────────────────────── */
+.phone-shell {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #060608;
+}
+
+.phone {
+  width: 393px;
+  height: 852px;
+  max-width: 100vw;
+  max-height: 100vh;
+  position: relative;
+  border-radius: 54px;
+  background: #0a0a10;
+  box-shadow:
+    0 0 0 2px #2a2a3a,
+    0 0 0 4px #111118,
+    0 60px 120px rgba(0,0,0,0.9),
+    0 0 80px rgba(167,139,250,0.06);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Dynamic Island */
+.dynamic-island {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 126px;
+  height: 37px;
+  background: #000;
+  border-radius: 20px;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.di-camera {
+  width: 12px;
+  height: 12px;
+  background: #1a1a2a;
+  border-radius: 50%;
+  border: 2px solid #0a0a18;
+  position: relative;
+}
+.di-camera::after {
+  content:'';
+  position:absolute;
+  inset:2px;
+  border-radius:50%;
+  background: #0f0f20;
+}
+
+.di-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--holo);
+  border-radius: 50%;
+  opacity: 0.4;
+  animation: dipulse 2s ease infinite;
+}
+@keyframes dipulse { 0%,100%{opacity:0.3} 50%{opacity:0.9} }
+
+/* Status bar */
+.status-bar {
+  height: 59px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 30px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'DM Mono', monospace;
+  color: rgba(255,255,255,0.85);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+
+.status-icons { display:flex; align-items:center; gap:5px; }
+.signal-bars { display:flex; align-items:flex-end; gap:1.5px; }
+.signal-bars span {
+  width: 3px;
+  background: rgba(255,255,255,0.85);
+  border-radius: 1px;
+}
+.signal-bars span:nth-child(1){height:4px}
+.signal-bars span:nth-child(2){height:6px}
+.signal-bars span:nth-child(3){height:9px}
+.signal-bars span:nth-child(4){height:12px}
+.battery {
+  width: 22px; height: 12px;
+  border: 1.5px solid rgba(255,255,255,0.7);
+  border-radius: 3px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+}
+.battery::after {
+  content:'';
+  position:absolute;
+  right:-4px; top:50%;
+  transform:translateY(-50%);
+  width:2px;height:5px;
+  background:rgba(255,255,255,0.5);
+  border-radius:0 1px 1px 0;
+}
+.battery-fill {
+  height:100%;
+  width:70%;
+  background:var(--up);
+  border-radius:1px;
+}
+
+/* ── TELEGRAM CHROME ─────────────────────────── */
+.tg-header {
+  background: #1c1c28;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.tg-back {
+  color: var(--holo2);
+  font-size: 22px;
+  cursor: pointer;
+  padding: 2px 6px 2px 0;
+  opacity: 0.9;
+}
+
+.tg-bot-info { flex:1; display:flex; align-items:center; gap:9px; }
+
+.tg-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7c3aed, #2563eb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.tg-avatar::after {
+  content:'';
+  position:absolute;
+  inset:-1px;
+  border-radius:50%;
+  background: linear-gradient(135deg, var(--holo), var(--holo2));
+  z-index:-1;
+  opacity:0.5;
+}
+
+.tg-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+
+.tg-status {
+  font-size: 11px;
+  color: var(--up);
+  margin-top: 2px;
+  display:flex;align-items:center;gap:4px;
+}
+
+.online-dot {
+  width:5px;height:5px;
+  border-radius:50%;
+  background:var(--up);
+  animation: dipulse 2s ease infinite;
+}
+
+.tg-actions { display:flex;gap:16px; }
+.tg-action { color:var(--holo2); font-size:18px; cursor:pointer; opacity:0.8; }
+
+/* ── CHAT AREA ───────────────────────────────── */
+.chat-area {
+  flex:1;
+  overflow-y: auto;
+  padding: 12px 12px 0;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  scrollbar-width: none;
+}
+.chat-area::-webkit-scrollbar { display:none; }
+
+.msg-row { display:flex; gap:8px; align-items:flex-end; }
+.msg-row.bot { justify-content:flex-start; }
+.msg-row.user { justify-content:flex-end; }
+
+.msg-avatar {
+  width:28px;height:28px;border-radius:50%;
+  background:linear-gradient(135deg,#7c3aed,#2563eb);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;flex-shrink:0;
+}
+
+.msg-bubble {
+  max-width: 78%;
+  padding: 9px 12px;
+  border-radius: 16px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  position:relative;
+}
+
+.bot .msg-bubble {
+  background: #1e1e2e;
+  border-bottom-left-radius: 4px;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.user .msg-bubble {
+  background: linear-gradient(135deg, #4c1d95, #1d4ed8);
+  border-bottom-right-radius: 4px;
+  color: #fff;
+}
+
+.msg-time {
+  font-size: 10px;
+  color: var(--muted);
+  text-align:right;
+  margin-top: 2px;
+  font-family: 'DM Mono', monospace;
+}
+
+.bot .msg-time { text-align:left; margin-left:36px; }
+
+/* Command chips */
+.cmd-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.chip {
+  padding: 5px 10px;
+  background: rgba(167,139,250,0.1);
+  border: 1px solid rgba(167,139,250,0.25);
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-family: 'DM Mono', monospace;
+  color: var(--holo);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.chip:hover { background:rgba(167,139,250,0.2); }
+
+/* ── MINI APP PANEL ──────────────────────────── */
+.miniapp-panel {
+  position: absolute;
+  inset: 59px 0 0 0;
+  background: var(--bg);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.32,0.72,0,1);
+  border-radius: 16px 16px 0 0;
+  overflow: hidden;
+}
+
+.miniapp-panel.open { transform: translateY(0); }
+
+.miniapp-topbar {
+  background: #16161f;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink:0;
+}
+
+.miniapp-drag {
+  width:36px;height:4px;
+  background:rgba(255,255,255,0.15);
+  border-radius:2px;
+  margin:0 auto 10px;
+}
+
+.miniapp-title-row {
+  display:flex;align-items:center;gap:8px;
+}
+
+.miniapp-logo {
+  width:28px;height:28px;
+  border-radius:8px;
+  background: linear-gradient(135deg,#7c3aed,#2563eb);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;
+}
+
+.miniapp-name {
+  font-size:14px;font-weight:800;
+  background: linear-gradient(90deg, var(--holo), var(--holo2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  font-family:'Bebas Neue',sans-serif;
+  letter-spacing:0.05em;
+  line-height:1;
+}
+
+.miniapp-sub {
+  font-size:9px;
+  color:var(--muted);
+  font-family:'DM Mono',monospace;
+  letter-spacing:0.06em;
+}
+
+.close-btn {
+  width:28px;height:28px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.06);
+  border:none;color:var(--muted);
+  font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.15s;
+}
+.close-btn:hover { background:rgba(255,255,255,0.12);color:var(--text); }
+
+/* ── STATS ROW ───────────────────────────────── */
+.stats-row {
+  display:flex;
+  gap:0;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.stats-row::-webkit-scrollbar{display:none;}
+
+.stat-cell {
+  display:flex;flex-direction:column;
+  align-items:center;
+  padding:8px 14px;
+  border-right:1px solid var(--border);
+  min-width:fit-content;
+  gap:2px;
+}
+
+.stat-cell:last-child{border-right:none;}
+
+.s-label {
+  font-size:8.5px;
+  font-family:'DM Mono',monospace;
+  color:var(--muted);
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+}
+
+.s-val {
+  font-size:12px;
+  font-weight:700;
+  font-family:'DM Mono',monospace;
+}
+
+.s-val.up{color:var(--up);}
+.s-val.down{color:var(--down);}
+.s-val.neutral{color:var(--silver);}
+
+/* ── SET TABS ────────────────────────────────── */
+.set-tabs {
+  display:flex;
+  gap:6px;
+  padding:8px 12px;
+  overflow-x:auto;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+  scrollbar-width:none;
+  background:var(--bg);
+}
+.set-tabs::-webkit-scrollbar{display:none;}
+
+.set-tab {
+  padding:4px 10px;
+  border-radius:16px;
+  border:1px solid var(--border);
+  font-size:10px;
+  font-weight:700;
+  font-family:'DM Mono',monospace;
+  cursor:pointer;
+  white-space:nowrap;
+  background:transparent;
+  color:var(--muted);
+  letter-spacing:0.03em;
+  transition:all 0.15s;
+  flex-shrink:0;
+}
+
+.set-tab.active {
+  border-color:var(--gold);
+  color:var(--gold);
+  background:rgba(240,192,64,0.08);
+}
+
+/* ── TIMEFRAME ───────────────────────────────── */
+.tf-row {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:6px 12px;
+  flex-shrink:0;
+  border-bottom:1px solid var(--border);
+}
+
+.tf-tabs {
+  display:flex;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:2px;
+  gap:2px;
+}
+
+.tf-tab {
+  padding:3px 10px;
+  border-radius:4px;
+  font-size:9.5px;
+  font-weight:700;
+  font-family:'DM Mono',monospace;
+  cursor:pointer;
+  color:var(--muted);
+  background:none;
+  border:none;
+  transition:all 0.15s;
+  letter-spacing:0.04em;
+}
+
+.tf-tab.active {background:var(--holo);color:#000;}
+
+.live-pill {
+  display:flex;align-items:center;gap:4px;
+  font-size:9px;
+  font-family:'DM Mono',monospace;
+  color:var(--up);
+  background:rgba(0,240,160,0.08);
+  border:1px solid rgba(0,240,160,0.2);
+  padding:3px 8px;border-radius:20px;
+}
+
+.live-dot {
+  width:5px;height:5px;border-radius:50%;
+  background:var(--up);
+  animation:dipulse 1.5s ease infinite;
+}
+
+/* ── BUBBLE STAGE ────────────────────────────── */
+.bubble-stage {
+  flex:1;
+  position:relative;
+  overflow:hidden;
+}
+
+/* ── BUBBLES ─────────────────────────────────── */
+.bubble {
+  position:absolute;
+  border-radius:50%;
+  cursor:pointer;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;
+  transition:transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  animation:popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+  overflow:hidden;
+  -webkit-user-select:none;user-select:none;
+}
+
+@keyframes popIn {
+  from{transform:scale(0);opacity:0}
+  to{transform:scale(1);opacity:1}
+}
+
+.bubble:active { transform:scale(0.94) !important; }
+
+.bubble.up {
+  background: radial-gradient(circle at 35% 30%, rgba(0,240,160,0.3) 0%, rgba(0,240,160,0.06) 70%);
+  border: 1.5px solid rgba(0,240,160,0.35);
+  box-shadow: 0 0 16px rgba(0,240,160,0.08), inset 0 0 20px rgba(0,240,160,0.04);
+}
+
+.bubble.down {
+  background: radial-gradient(circle at 35% 30%, rgba(255,56,100,0.28) 0%, rgba(255,56,100,0.06) 70%);
+  border: 1.5px solid rgba(255,56,100,0.3);
+  box-shadow: 0 0 16px rgba(255,56,100,0.08), inset 0 0 20px rgba(255,56,100,0.04);
+}
+
+.bubble.flat {
+  background: radial-gradient(circle at 35% 30%, rgba(74,74,106,0.25) 0%, rgba(74,74,106,0.06) 70%);
+  border: 1.5px solid rgba(74,74,106,0.3);
+}
+
+/* Sealed product bubbles get a distinct box shape with rounded corners */
+.bubble.sealed-up {
+  border-radius: 18px !important;
+  background: radial-gradient(circle at 35% 30%, rgba(0,240,160,0.25) 0%, rgba(0,240,160,0.06) 70%);
+  border: 1.5px solid rgba(0,240,160,0.35);
+  box-shadow: 0 0 16px rgba(0,240,160,0.08), inset 0 0 20px rgba(0,240,160,0.04);
+}
+
+.bubble.sealed-down {
+  border-radius: 18px !important;
+  background: radial-gradient(circle at 35% 30%, rgba(255,56,100,0.25) 0%, rgba(255,56,100,0.06) 70%);
+  border: 1.5px solid rgba(255,56,100,0.3);
+  box-shadow: 0 0 16px rgba(255,56,100,0.08);
+}
+
+.bubble.sealed-flat {
+  border-radius: 18px !important;
+  background: radial-gradient(circle at 35% 30%, rgba(251,191,36,0.15) 0%, rgba(251,191,36,0.04) 70%);
+  border: 1.5px solid rgba(251,191,36,0.25);
+}
+
+.sealed-icon {
+  font-size: 16px;
+  margin-bottom: 2px;
+}
+
+.b-vs-rrp {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  color: rgba(255,255,255,0.4);
+  margin-top: 1px;
+}
+
+/* Holo shimmer on big bubbles */
+.bubble.big::before {
+  content:'';
+  position:absolute;
+  top:-30%;left:-30%;
+  width:60%;height:60%;
+  background:radial-gradient(ellipse, rgba(167,139,250,0.15), transparent 70%);
+  border-radius:50%;
+  pointer-events:none;
+}
+
+.b-set {
+  font-family:'DM Mono',monospace;
+  font-size:7px;
+  color:rgba(255,255,255,0.35);
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+  line-height:1;
+}
+
+.b-name {
+  font-weight:800;
+  line-height:1.1;
+  padding:0 6px;
+  text-shadow:0 1px 4px rgba(0,0,0,0.9);
+}
+
+.b-pct {
+  font-family:'DM Mono',monospace;
+  font-weight:700;
+  letter-spacing:0.01em;
+  margin-top:1px;
+}
+
+.b-price {
+  font-family:'DM Mono',monospace;
+  color:rgba(255,255,255,0.45);
+  margin-top:1px;
+}
+
+/* ── CARD DETAIL SHEET ───────────────────────── */
+.detail-sheet {
+  position:absolute;
+  bottom:-100%;
+  left:0;right:0;
+  background:#16161f;
+  border-radius:20px 20px 0 0;
+  padding:0 0 24px;
+  z-index:80;
+  transition:bottom 0.35s cubic-bezier(0.32,0.72,0,1);
+  border-top:1px solid var(--border);
+  box-shadow:0 -20px 60px rgba(0,0,0,0.6);
+}
+
+.detail-sheet.open { bottom:0; }
+
+.sheet-handle {
+  width:36px;height:4px;background:rgba(255,255,255,0.12);
+  border-radius:2px;margin:10px auto 14px;
+}
+
+.sheet-header {
+  display:flex;justify-content:space-between;align-items:flex-start;
+  padding:0 18px;margin-bottom:14px;
+}
+
+.sheet-name {
+  font-size:20px;font-weight:900;
+  line-height:1.1;
+}
+
+.sheet-set {
+  font-size:10px;font-family:'DM Mono',monospace;
+  color:var(--muted);letter-spacing:0.06em;
+  text-transform:uppercase;margin-top:3px;
+}
+
+.sheet-pct {
+  font-family:'DM Mono',monospace;
+  font-size:22px;font-weight:700;
+  text-align:right;
+}
+
+.sheet-grid {
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:8px;padding:0 18px;margin-bottom:14px;
+}
+
+.sheet-cell {
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 12px;
+}
+
+.sheet-cell-label {
+  font-size:9px;font-family:'DM Mono',monospace;
+  color:var(--muted);letter-spacing:0.07em;
+  text-transform:uppercase;margin-bottom:4px;
+}
+
+.sheet-cell-val {
+  font-size:14px;font-weight:700;
+  font-family:'DM Mono',monospace;
+}
+
+.sheet-actions {
+  display:flex;gap:8px;padding:0 18px;
+}
+
+.sh-btn {
+  flex:1;padding:12px;border-radius:12px;
+  font-size:12px;font-weight:700;
+  font-family:'DM Mono',monospace;
+  cursor:pointer;border:none;
+  letter-spacing:0.04em;
+  transition:all 0.15s;
+}
+
+.sh-btn.primary {
+  background:linear-gradient(135deg,var(--holo),var(--holo2));
+  color:#000;
+}
+
+.sh-btn.secondary {
+  background:rgba(255,255,255,0.06);
+  border:1px solid var(--border);
+  color:var(--silver);
+}
+
+/* ── BOTTOM NAV ──────────────────────────────── */
+.bottom-nav {
+  background:#14141e;
+  border-top:1px solid var(--border);
+  display:flex;
+  padding:8px 0 calc(8px + var(--tg-safe));
+  flex-shrink:0;
+}
+
+.nav-item {
+  flex:1;
+  display:flex;flex-direction:column;
+  align-items:center;gap:3px;
+  cursor:pointer;
+  padding:4px 0;
+  transition:all 0.15s;
+}
+
+.nav-icon { font-size:20px; opacity:0.4; transition:all 0.15s; }
+.nav-label { font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);letter-spacing:0.04em; }
+
+.nav-item.active .nav-icon { opacity:1; }
+.nav-item.active .nav-label { color:var(--holo); }
+
+/* Home indicator */
+.home-bar {
+  height:34px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.home-bar::after {
+  content:'';
+  width:134px;height:5px;
+  background:rgba(255,255,255,0.25);
+  border-radius:3px;
+}
+
+/* ── TOOLTIP ─────────────────────────────────── */
+.bubble-tooltip {
+  position:absolute;
+  background:#1e1e2e;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 14px;
+  z-index:70;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity 0.15s;
+  font-size:11px;
+  min-width:150px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.5);
+}
+.bubble-tooltip.show{opacity:1;}
+.tt-r{display:flex;justify-content:space-between;gap:20px;margin-bottom:2px;}
+.tt-l{color:var(--muted);}
+.tt-v{font-family:'DM Mono',monospace;font-weight:700;}
+.tt-v.up{color:var(--up);}
+.tt-v.down{color:var(--down);}
+
+/* ── LOADING SHIMMER ─────────────────────────── */
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+
+/* ── HOLO BACKGROUND ─────────────────────────── */
+.holo-bg {
+  position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0;
+}
+
+.holo-orb {
+  position:absolute;border-radius:50%;
+  filter:blur(60px);opacity:0.06;
+  animation:orb 8s ease-in-out infinite alternate;
+}
+
+@keyframes orb{from{transform:translate(0,0) scale(1)}to{transform:translate(20px,15px) scale(1.1)}}
+
+.orb1{width:200px;height:200px;background:var(--holo);top:-50px;left:-50px;animation-delay:0s;}
+.orb2{width:160px;height:160px;background:var(--holo2);bottom:-30px;right:-30px;animation-delay:2s;}
+.orb3{width:120px;height:120px;background:var(--up);top:40%;left:40%;animation-delay:4s;}
+
+
+/* ── PORTFOLIO PANEL ─────────────────────────────────────────────────────── */
+.portfolio-panel {
+  position:absolute;
+  inset:0;
+  background:var(--bg);
+  z-index:60;
+  display:flex;flex-direction:column;
+  transform:translateX(100%);
+  transition:transform 0.35s cubic-bezier(0.32,0.72,0,1);
+  overflow:hidden;
+}
+
+.portfolio-panel.open { transform:translateX(0); }
+
+.port-header {
+  background:var(--s1);
+  border-bottom:1px solid var(--border);
+  padding:14px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+}
+
+.port-title {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:20px;letter-spacing:0.05em;
+}
+
+.port-back {
+  font-size:20px;color:var(--holo2);
+  cursor:pointer;padding:2px 8px 2px 0;
+}
+
+/* Summary bar */
+.port-summary {
+  display:grid;grid-template-columns:1fr 1fr 1fr;
+  background:var(--s2);
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+
+.port-stat {
+  padding:10px 14px;
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;gap:2px;
+}
+
+.port-stat:last-child { border-right:none; }
+
+.ps-label {
+  font-size:8px;font-family:'DM Mono',monospace;
+  color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;
+}
+
+.ps-val {
+  font-family:'DM Mono',monospace;
+  font-size:13px;font-weight:700;
+}
+
+/* Holdings list */
+.port-list {
+  flex:1;overflow-y:auto;
+  padding:10px 12px;
+  display:flex;flex-direction:column;gap:8px;
+  scrollbar-width:none;
+}
+.port-list::-webkit-scrollbar{display:none;}
+
+.port-empty {
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  height:100%;gap:12px;
+  color:var(--muted);
+  font-family:'DM Mono',monospace;font-size:11px;
+  text-align:center;padding:20px;
+}
+
+.port-empty-icon { font-size:40px;opacity:0.4; }
+
+.holding-card {
+  background:var(--s1);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:12px 14px;
+  display:flex;align-items:center;gap:10px;
+  transition:all 0.15s;
+  position:relative;
+  overflow:hidden;
+}
+
+.holding-card::before {
+  content:'';
+  position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--hc,var(--holo));
+}
+
+.holding-card:hover { border-color:rgba(255,255,255,0.1); }
+
+.holding-img {
+  width:44px;height:60px;
+  border-radius:6px;
+  object-fit:cover;
+  background:var(--s2);
+  flex-shrink:0;
+}
+
+.holding-img-placeholder {
+  width:44px;height:60px;
+  border-radius:6px;
+  background:var(--s2);
+  border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
+
+.holding-info { flex:1;min-width:0; }
+
+.holding-name {
+  font-size:12px;font-weight:800;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  margin-bottom:2px;
+}
+
+.holding-set {
+  font-size:9px;font-family:'DM Mono',monospace;
+  color:var(--muted);margin-bottom:6px;
+}
+
+.holding-row {
+  display:flex;gap:8px;align-items:center;
+}
+
+.holding-qty {
+  font-size:10px;font-family:'DM Mono',monospace;
+  color:var(--muted);
+  background:var(--s2);border-radius:4px;
+  padding:2px 6px;border:1px solid var(--border);
+}
+
+.holding-cost {
+  font-size:10px;font-family:'DM Mono',monospace;
+  color:var(--muted);
+}
+
+.holding-right {
+  text-align:right;flex-shrink:0;
+}
+
+.holding-current {
+  font-family:'DM Mono',monospace;
+  font-size:13px;font-weight:700;
+}
+
+.holding-pnl {
+  font-family:'DM Mono',monospace;
+  font-size:10px;margin-top:2px;
+}
+
+.holding-pnl.pos { color:var(--up); }
+.holding-pnl.neg { color:var(--down); }
+
+.holding-del {
+  font-size:16px;color:var(--muted);
+  cursor:pointer;padding:4px;
+  transition:color 0.15s;
+  flex-shrink:0;
+}
+.holding-del:hover { color:var(--down); }
+
+/* Add to portfolio form in detail sheet */
+.add-portfolio-row {
+  display:flex;gap:8px;
+  padding:0 18px;margin-top:8px;
+}
+
+.qty-input {
+  width:60px;padding:8px;
+  background:var(--s2);border:1px solid var(--border);
+  border-radius:8px;color:var(--text);
+  font-family:'DM Mono',monospace;font-size:13px;
+  text-align:center;outline:none;
+}
+
+.qty-input:focus { border-color:var(--holo); }
+
+.cost-input {
+  flex:1;padding:8px 10px;
+  background:var(--s2);border:1px solid var(--border);
+  border-radius:8px;color:var(--text);
+  font-family:'DM Mono',monospace;font-size:12px;
+  outline:none;
+}
+
+.cost-input:focus { border-color:var(--holo); }
+
+.cost-input::placeholder { color:var(--muted); }
+
+.add-port-btn {
+  padding:8px 14px;
+  background:linear-gradient(135deg,var(--holo),var(--holo2));
+  border:none;border-radius:8px;
+  color:#000;font-weight:800;font-size:11px;
+  font-family:'DM Mono',monospace;letter-spacing:0.04em;
+  cursor:pointer;transition:all 0.15s;
+  white-space:nowrap;
+}
+
+.add-port-btn:active { transform:scale(0.96); }
+
+/* Upgrade gate */
+.port-gate {
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:28px;gap:16px;text-align:center;
+}
+
+.port-gate-icon { font-size:44px; }
+
+.port-gate-title {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:22px;letter-spacing:0.04em;
+}
+
+.port-gate-sub {
+  font-size:11px;font-family:'DM Mono',monospace;
+  color:var(--muted);line-height:1.5;
+}
+
+.port-gate-btn {
+  padding:12px 24px;
+  background:linear-gradient(135deg,var(--holo),var(--holo2));
+  border:none;border-radius:10px;
+  color:#000;font-weight:800;font-size:12px;
+  font-family:'DM Mono',monospace;letter-spacing:0.05em;
+  cursor:pointer;
+}
+
+.tier-features {
+  display:flex;flex-direction:column;gap:6px;width:100%;
+}
+
+.tier-feat {
+  display:flex;align-items:center;gap:8px;
+  font-size:11px;font-family:'DM Mono',monospace;
+  color:rgba(255,255,255,0.65);
+  padding:6px 12px;
+  background:var(--s2);border-radius:6px;
+  border:1px solid var(--border);
+}
+
+.tier-feat-icon { font-size:14px;flex-shrink:0; }
+</style>
+</head>
+<body>
+
+<div class="phone-shell">
+<div class="phone">
+
+  <!-- Dynamic Island -->
+  <div class="dynamic-island">
+    <div class="di-camera"></div>
+    <div class="di-dot"></div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="status-icons">
+      <div class="signal-bars">
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <span style="font-size:11px;">5G</span>
+      <div class="battery"><div class="battery-fill"></div></div>
+    </div>
+  </div>
+
+  <!-- Telegram Header -->
+  <div class="tg-header">
+    <span class="tg-back">‹</span>
+    <div class="tg-bot-info">
+      <div class="tg-avatar">⬡</div>
+      <div>
+        <div class="tg-name">HoloOracle</div>
+        <div class="tg-status"><div class="online-dot"></div>bot · online</div>
+      </div>
+    </div>
+    <div class="tg-actions">
+      <span class="tg-action">🔍</span>
+      <span class="tg-action">⋮</span>
+    </div>
+  </div>
+
+  <!-- Chat -->
+  <div class="chat-area" id="chat">
+
+    <div class="msg-row bot">
+      <div class="msg-avatar">⬡</div>
+      <div>
+        <div class="msg-bubble">
+          👋 Welcome to <strong>HoloOracle</strong> — your Pokémon TCG market intelligence bot.<br><br>
+          Track live prices, spot movers, and find deals before anyone else.
+        </div>
+        <div class="cmd-chips">
+          <span class="chip" onclick="openMarket()">📊 /market</span>
+          <span class="chip"  onclick="showPriceMsg()">💰 /price</span>
+          <span class="chip">/trending</span>
+          <span class="chip">/alerts</span>
+        </div>
+        <div class="msg-time">09:41</div>
+      </div>
+    </div>
+
+    <div class="msg-row user" id="user-msg" style="display:none;">
+      <div>
+        <div class="msg-bubble">/market</div>
+        <div class="msg-time">09:41</div>
+      </div>
+    </div>
+
+    <div class="msg-row bot" id="market-reply" style="display:none;">
+      <div class="msg-avatar">⬡</div>
+      <div>
+        <div class="msg-bubble">
+          📊 Opening <strong>TCG Market Bubbles</strong>…<br>
+          <span style="color:var(--muted);font-size:12px;">Fetching live eBay sold data across 8 sets</span>
+        </div>
+        <div class="msg-time">09:41</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── MINI APP PANEL ───────────────────────── -->
+  <div class="miniapp-panel" id="miniapp">
+
+    <div class="holo-bg">
+      <div class="holo-orb orb1"></div>
+      <div class="holo-orb orb2"></div>
+      <div class="holo-orb orb3"></div>
+    </div>
+
+    <!-- Top bar -->
+    <div class="miniapp-topbar" style="flex-direction:column;gap:0;padding:0 14px 10px;">
+      <div class="miniapp-drag"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="miniapp-title-row">
+          <div class="miniapp-logo">⬡</div>
+          <div>
+            <div class="miniapp-name">HoloOracle</div>
+            <div class="miniapp-sub">TCG MARKET BUBBLES</div>
+          </div>
+        </div>
+        <button class="close-btn" onclick="closeMarket()">✕</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row" id="stats-row">
+      <div class="stat-cell">
+        <span class="s-label" id="s-count-label">Items</span>
+        <span class="s-val neutral" id="s-count">48</span>
+      </div>
+      <div class="stat-cell">
+        <span class="s-label">Gainers</span>
+        <span class="s-val up" id="s-gainers">—</span>
+      </div>
+      <div class="stat-cell">
+        <span class="s-label">Losers</span>
+        <span class="s-val down" id="s-losers">—</span>
+      </div>
+      <div class="stat-cell">
+        <span class="s-label">Top Move</span>
+        <span class="s-val up" id="s-top">—</span>
+      </div>
+      <div class="stat-cell">
+        <span class="s-label">Avg</span>
+        <span class="s-val neutral" id="s-avg">—</span>
+      </div>
+    </div>
+
+    <!-- Set Tabs -->
+    <div class="set-tabs" id="set-tabs">
+      <button class="set-tab active" onclick="filterSet('ALL',this)">ALL</button>
+    </div>
+
+    <!-- View Mode + Timeframe -->
+    <div class="tf-row">
+      <div class="tf-tabs">
+        <button class="tf-tab active" onclick="setView('singles',this)" id="view-singles">🃏 SINGLES</button>
+        <button class="tf-tab" onclick="setView('sealed',this)" id="view-sealed">📦 SEALED</button>
+        <button class="tf-tab" onclick="setView('all',this)" id="view-all">ALL</button>
+      </div>
+      <div class="tf-tabs" style="margin-left:auto;">
+        <button class="tf-tab" onclick="setTF('1H',this)">1H</button>
+        <button class="tf-tab active" onclick="setTF('24H',this)">24H</button>
+        <button class="tf-tab" onclick="setTF('7D',this)">7D</button>
+        <button class="tf-tab" onclick="setTF('30D',this)">30D</button>
+      </div>
+    </div>
+
+    <!-- Currency Toggle -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;">
+      <div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);letter-spacing:0.07em;text-transform:uppercase;">Currency</div>
+      <div class="tf-tabs" id="currency-tabs">
+        <button class="tf-tab active" onclick="setCurrency('GBP',this)">🇬🇧 £</button>
+        <button class="tf-tab" onclick="setCurrency('USD',this)">🇺🇸 $</button>
+        <button class="tf-tab" onclick="setCurrency('EUR',this)">🇪🇺 €</button>
+        <button class="tf-tab" onclick="setCurrency('AUD',this)">🇦🇺 A$</button>
+      </div>
+    </div>
+
+    <!-- Bubble Stage -->
+    <div class="bubble-stage" id="stage">
+      <div class="bubble-tooltip" id="tooltip"></div>
+    </div>
+
+    <!-- Card Detail Sheet -->
+    <div class="detail-sheet" id="detail-sheet">
+      <div class="sheet-handle"></div>
+      <div id="ds-img-wrap" style="display:none;margin:0 18px 12px;border-radius:10px;overflow:hidden;height:120px;background:var(--s3);position:relative;">
+        <img id="ds-img" src="" style="width:100%;height:100%;object-fit:contain;object-position:center;" onerror="this.parentElement.style.display='none'">
+      </div>
+      <div class="sheet-header">
+        <div>
+          <div class="sheet-name" id="ds-name">—</div>
+          <div class="sheet-set" id="ds-set">—</div>
+        </div>
+        <div>
+          <div class="sheet-pct" id="ds-pct">—</div>
+          <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-align:right;" id="ds-tf">24H</div>
+        </div>
+      </div>
+      <div class="sheet-grid">
+        <div class="sheet-cell">
+          <div class="sheet-cell-label" id="ds-price-label">Price (eBay avg)</div>
+          <div class="sheet-cell-val" id="ds-price">—</div>
+        </div>
+        <div class="sheet-cell">
+          <div class="sheet-cell-label" id="ds-rarity-label">Rarity / Type</div>
+          <div class="sheet-cell-val" id="ds-rarity">—</div>
+        </div>
+        <div class="sheet-cell">
+          <div class="sheet-cell-label">24H High</div>
+          <div class="sheet-cell-val" id="ds-high">—</div>
+        </div>
+        <div class="sheet-cell">
+          <div class="sheet-cell-label">24H Low</div>
+          <div class="sheet-cell-val" id="ds-low">—</div>
+        </div>
+        <div class="sheet-cell">
+          <div class="sheet-cell-label" id="ds-vol-label">Listings / Sales</div>
+          <div class="sheet-cell-val" id="ds-vol">—</div>
+        </div>
+        <div class="sheet-cell">
+          <div class="sheet-cell-label" id="ds-extra-label">vs RRP / Trend</div>
+          <div class="sheet-cell-val" id="ds-trend">—</div>
+        </div>
+      </div>
+      <!-- Add to portfolio / Record sale inputs -->
+      <div id="add-port-row" style="display:none;padding:0 18px;margin-top:6px;">
+        <div style="display:flex;gap:6px;margin-bottom:6px;">
+          <input type="number" class="qty-input" id="port-qty" value="1" min="1" max="99" placeholder="Qty">
+          <input type="text" class="cost-input" id="port-cost" placeholder="Buy price (e.g. 45.00)">
+        </div>
+        <div id="sell-row" style="display:none;gap:6px;margin-bottom:6px;align-items:center;">
+          <input type="text" class="cost-input" id="port-sell" placeholder="Sell price (e.g. 85.00)">
+          <select id="port-platform" style="padding:8px;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;outline:none;">
+            <option>eBay</option>
+            <option>Whatnot</option>
+            <option>Facebook</option>
+            <option>Local</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="add-port-btn" id="add-port-action-btn" onclick="addToPortfolio()" style="flex:1;">+ Buy</button>
+          <button class="add-port-btn" onclick="toggleSellMode()" id="sell-toggle-btn" style="background:linear-gradient(135deg,var(--gold),var(--orange));flex:1;">💰 Sell</button>
+        </div>
+      </div>
+      <div class="sheet-actions">
+        <button class="sh-btn primary" id="ds-alert-btn">🔔 Alert</button>
+        <button class="sh-btn secondary" id="ds-port-btn" onclick="toggleAddPortfolio()">💼 Track</button>
+        <button class="sh-btn secondary" onclick="closeSheet()" style="flex:0;padding:12px 10px;">✕</button>
+      </div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class="bottom-nav">
+      <div class="nav-item active">
+        <div class="nav-icon">📊</div>
+        <div class="nav-label">MARKET</div>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon">🔥</div>
+        <div class="nav-label">TRENDING</div>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon">🔔</div>
+        <div class="nav-label">ALERTS</div>
+      </div>
+      <div class="nav-item" onclick="openPortfolio()">
+        <div class="nav-icon">💼</div>
+        <div class="nav-label">PORTFOLIO</div>
+      </div>
+    </div>
+
+    <!-- Portfolio Panel -->
+    <div class="portfolio-panel" id="portfolio-panel">
+
+      <div class="port-header">
+        <span class="port-back" onclick="closePortfolio()">‹</span>
+        <div class="port-title">My Portfolio</div>
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);" id="port-item-count">0 items</div>
+      </div>
+
+      <!-- Summary -->
+      <div class="port-summary" id="port-summary" style="display:none;">
+        <div class="port-stat">
+          <span class="ps-label">Total Value</span>
+          <span class="ps-val" id="port-total-val">—</span>
+        </div>
+        <div class="port-stat">
+          <span class="ps-label">Cost Basis</span>
+          <span class="ps-val" id="port-cost-basis">—</span>
+        </div>
+        <div class="port-stat">
+          <span class="ps-label">P&L</span>
+          <span class="ps-val" id="port-pnl">—</span>
+        </div>
+      </div>
+
+      <!-- Gate (shown when not subscribed) -->
+      <div class="port-gate" id="port-gate">
+        <div class="port-gate-icon">💼</div>
+        <div class="port-gate-title">Portfolio Tracker</div>
+        <div class="port-gate-sub">
+          Track your collection value in real time.<br>
+          Add cards and see your P&L update live.
+        </div>
+        <div class="tier-features">
+          <div class="tier-feat"><span class="tier-feat-icon">📊</span>Live portfolio value in GBP/USD/EUR</div>
+          <div class="tier-feat"><span class="tier-feat-icon">📈</span>P&L vs what you paid</div>
+          <div class="tier-feat"><span class="tier-feat-icon">🃏</span>Singles + sealed products</div>
+          <div class="tier-feat"><span class="tier-feat-icon">💾</span>Saved across sessions</div>
+        </div>
+        <button class="port-gate-btn" onclick="triggerUpgrade()">⭐ Upgrade to unlock</button>
+        <div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);margin-top:4px;">Trader · Pro · Elite — from 990 Stars/mo</div>
+      </div>
+
+      <!-- Holdings list (shown when subscribed) -->
+      <div class="port-list" id="port-list" style="display:none;">
+        <div class="port-empty" id="port-empty">
+          <div class="port-empty-icon">🃏</div>
+          <div>No cards yet</div>
+          <div style="font-size:10px;color:var(--muted);">Tap any card in the market<br>and press + Add to Portfolio</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="home-bar"></div>
+  </div>
+
+</div><!-- phone -->
+</div><!-- shell -->
+
+<script>
+// ── DATA ──────────────────────────────────────
+// ── IMAGE CACHE ──────────────────────────────
+// Images fetched dynamically from pokemontcg.io API
+// Cached in memory so each card is only fetched once per session
+const imgCache = {};
+const TCG_API  = "https://api.pokemontcg.io/v2/cards";
+
+// Map set names in our data to TCG API set names
+const SET_NAME_MAP = {
+  "151":              "Pokemon Card 151",
+  "Twi. Masquerade":  "Twilight Masquerade",
+  "Ascending Hero":   "Sword & Shield",  // JP set — fallback search
+  "Stellar Crown":    "Stellar Crown",
+  "Surging Sparks":   "Surging Sparks",
+  "Paradox Rift":     "Paradox Rift",
+  "Obsidian Flames":  "Obsidian Flames",
+  "Paldea Evolved":   "Paldea Evolved",
+  "Shining Legends":  "Shining Legends",
+  "Temporal Forces":  "Temporal Forces",
+};
+
+// Fetch card image from TCG API — returns image URL or null
+async function fetchCardImg(name, set) {
+  const cacheKey = name + "-" + set;
+  if(imgCache[cacheKey] !== undefined) return imgCache[cacheKey];
+
+  // Mark as fetching so we don't double-request
+  imgCache[cacheKey] = null;
+
+  try {
+    const apiSetName = SET_NAME_MAP[set] || set;
+    // Search by name and set — get the highest rarity version
+    const query = encodeURIComponent(`name:"${name}" set.name:"${apiSetName}"`);
+    const res   = await fetch(`${TCG_API}?q=${query}&select=id,name,images,rarity&orderBy=-rarity&pageSize=5`);
+    if(!res.ok) return null;
+
+    const data  = await res.json();
+    const cards = data.data || [];
+
+    // Prefer SAR > UR > SR — pick the most premium art
+    const rarityOrder = ["Special Illustration Rare","Illustration Rare","Ultra Rare","Secret Rare","Hyper Rare","Double Rare","Rare Holo"];
+    let best = null;
+
+    for(const rarity of rarityOrder) {
+      const match = cards.find(c => c.rarity === rarity);
+      if(match) { best = match; break; }
+    }
+
+    if(!best && cards.length) best = cards[0];
+
+    const url = best?.images?.large || best?.images?.small || null;
+    imgCache[cacheKey] = url;
+    return url;
+
+  } catch(e) {
+    return null;
+  }
+}
+
+// Synchronous getter — returns cached value or null (triggers async fetch)
+function getCardImg(name, set) {
+  const key = name + "-" + set;
+  if(imgCache[key] !== undefined) return imgCache[key];
+  // Trigger background fetch — bubble will update when tapped if not cached yet
+  fetchCardImg(name, set);
+  return null;
+}
+
+// Pre-fetch images for the top 10 most valuable cards on load
+async function prefetchTopImages() {
+  const top10 = [
+    ["Charizard ex",         "151"],
+    ["Mew ex",               "151"],
+    ["Mewtwo ex",            "151"],
+    ["Miraidon ex",          "Surging Sparks"],
+    ["Pikachu ex",           "Surging Sparks"],
+    ["Terapagos ex",         "Stellar Crown"],
+    ["Gardevoir ex",         "Stellar Crown"],
+    ["Roaring Moon ex",      "Paradox Rift"],
+    ["Charizard ex",         "Obsidian Flames"],
+    ["Bloodmoon Ursaluna",   "Twi. Masquerade"],
+  ];
+  // Fetch in parallel
+  await Promise.all(top10.map(([name, set]) => fetchCardImg(name, set)));
+  // Re-render bubbles now images are ready
+  render();
+}
+
+const CARDS = [
+  {name:"Charizard ex",set:"151",rarity:"UR",base:85,cap:95},
+  {name:"Mew ex",set:"151",rarity:"UR",base:32,cap:70},
+  {name:"Mewtwo ex",set:"151",rarity:"SR",base:28,cap:62},
+  {name:"Blastoise ex",set:"151",rarity:"SR",base:18,cap:50},
+  {name:"Gengar ex",set:"151",rarity:"SR",base:22,cap:55},
+  {name:"Alakazam ex",set:"151",rarity:"SR",base:16,cap:44},
+  {name:"Slowpoke",set:"151",rarity:"R",base:8,cap:32},
+
+  {name:"Miraidon ex",set:"Surging Sparks",rarity:"UR",base:55,cap:80},
+  {name:"Pikachu ex",set:"Surging Sparks",rarity:"UR",base:45,cap:74},
+  {name:"Ogerpon ex",set:"Surging Sparks",rarity:"SR",base:18,cap:48},
+  {name:"Raichu ex",set:"Surging Sparks",rarity:"SR",base:14,cap:40},
+
+  {name:"Terapagos ex",set:"Stellar Crown",rarity:"UR",base:65,cap:85},
+  {name:"Gardevoir ex",set:"Stellar Crown",rarity:"UR",base:40,cap:70},
+  {name:"Pecharunt ex",set:"Stellar Crown",rarity:"SR",base:30,cap:60},
+  {name:"Drayton",set:"Stellar Crown",rarity:"SR",base:15,cap:42},
+
+  {name:"Bloodmoon Ursaluna",set:"Twi. Masquerade",rarity:"UR",base:50,cap:78},
+  {name:"Ogerpon Teal",set:"Twi. Masquerade",rarity:"UR",base:35,cap:65},
+  {name:"Kieran",set:"Twi. Masquerade",rarity:"SR",base:25,cap:55},
+
+  {name:"Roaring Moon ex",set:"Paradox Rift",rarity:"UR",base:55,cap:82},
+  {name:"Iron Valiant ex",set:"Paradox Rift",rarity:"UR",base:48,cap:76},
+  {name:"Garchomp ex",set:"Paradox Rift",rarity:"SR",base:18,cap:46},
+
+  {name:"Latias ex",set:"Ascending Hero",rarity:"SAR",base:75,cap:90},
+  {name:"Latios ex",set:"Ascending Hero",rarity:"SAR",base:72,cap:88},
+  {name:"Rayquaza ex",set:"Ascending Hero",rarity:"UR",base:60,cap:84},
+  {name:"Flygon ex",set:"Ascending Hero",rarity:"SR",base:28,cap:58},
+
+  {name:"Charizard ex",set:"Obsidian Flames",rarity:"UR",base:90,cap:98},
+  {name:"Dragonite ex",set:"Obsidian Flames",rarity:"SR",base:22,cap:52},
+
+  {name:"Iono",set:"Paldea Evolved",rarity:"UR",base:45,cap:75},
+  {name:"Sylveon ex",set:"Paldea Evolved",rarity:"SR",base:25,cap:58},
+  {name:"Arcanine ex",set:"Paldea Evolved",rarity:"SR",base:14,cap:40},
+
+  {name:"Shining Mewtwo",set:"Shining Legends",rarity:"Shiny",base:120,cap:100},
+  {name:"Ho-Oh GX",set:"Shining Legends",rarity:"UR",base:40,cap:70},
+];
+
+const SEALED = [
+  // ETBs
+  {name:"Battle Partners ETB",    set:"Battle Partners",    type:"ETB",  rrp:44.99, base:52,  cap:72, kind:"sealed"},
+  {name:"Prismatic Evolutions ETB",set:"Prismatic Evol.",   type:"ETB",  rrp:49.99, base:95,  cap:95, kind:"sealed"},
+  {name:"Surging Sparks ETB",     set:"Surging Sparks",     type:"ETB",  rrp:44.99, base:48,  cap:70, kind:"sealed"},
+  {name:"Stellar Crown ETB",      set:"Stellar Crown",      type:"ETB",  rrp:44.99, base:46,  cap:68, kind:"sealed"},
+  {name:"Twilight Masquerade ETB",set:"Twi. Masquerade",    type:"ETB",  rrp:44.99, base:55,  cap:74, kind:"sealed"},
+  {name:"Temporal Forces ETB",    set:"Temporal Forces",    type:"ETB",  rrp:44.99, base:50,  cap:72, kind:"sealed"},
+  {name:"Paradox Rift ETB",       set:"Paradox Rift",       type:"ETB",  rrp:44.99, base:44,  cap:66, kind:"sealed"},
+  {name:"Obsidian Flames ETB",    set:"Obsidian Flames",    type:"ETB",  rrp:44.99, base:60,  cap:78, kind:"sealed"},
+  {name:"Pokemon 151 ETB",        set:"151",                type:"ETB",  rrp:44.99, base:70,  cap:84, kind:"sealed"},
+  {name:"Paldea Evolved ETB",     set:"Paldea Evolved",     type:"ETB",  rrp:44.99, base:42,  cap:64, kind:"sealed"},
+  {name:"Hidden Fates ETB",       set:"Hidden Fates",       type:"ETB",  rrp:44.99, base:120, cap:98, kind:"sealed"},
+  {name:"Celebrations ETB",       set:"Celebrations",       type:"ETB",  rrp:44.99, base:65,  cap:80, kind:"sealed"},
+  {name:"Paldean Fates ETB",      set:"Paldean Fates",      type:"ETB",  rrp:44.99, base:55,  cap:74, kind:"sealed"},
+  // Booster Boxes
+  {name:"151 Booster Box",        set:"151",                type:"Box",  rrp:134.99,base:180, cap:90, kind:"sealed"},
+  {name:"Surging Sparks Box",     set:"Surging Sparks",     type:"Box",  rrp:134.99,base:145, cap:82, kind:"sealed"},
+  {name:"Obsidian Flames Box",    set:"Obsidian Flames",    type:"Box",  rrp:134.99,base:160, cap:86, kind:"sealed"},
+  // JP ETBs
+  {name:"151 ETB (JP)",           set:"Pokémon Card 151",   type:"JP ETB",rrp:40,   base:75,  cap:86, kind:"sealed"},
+  {name:"Shiny Treasure ETB (JP)",set:"Shiny Treasure ex",  type:"JP ETB",rrp:40,   base:85,  cap:88, kind:"sealed"},
+  {name:"Battle Partners ETB (JP)",set:"Battle Partners",   type:"JP ETB",rrp:35,   base:55,  cap:74, kind:"sealed"},
+];
+
+let tf         = '24H';
+let activeSet  = 'ALL';
+let viewMode   = 'singles';  // 'singles' | 'sealed' | 'all'
+let currency   = 'GBP';      // 'GBP' | 'USD' | 'EUR'
+let data       = [];
+let sealedData = [];
+
+// FX rates — fetched live on load, fallback to sensible defaults
+let FX = { GBP: 1.0, USD: 1.27, EUR: 1.17, AUD: 1.97 };
+
+const CURRENCY_SYMBOLS = { GBP: '£', USD: '$', EUR: '€', AUD: 'A$' };
+const CURRENCY_FLAGS   = { GBP: '🇬🇧', USD: '🇺🇸', EUR: '🇪🇺', AUD: '🇦🇺' };
+
+function fmt(priceGbp) {
+  const converted = priceGbp * FX[currency];
+  const symbol    = CURRENCY_SYMBOLS[currency];
+  return `${symbol}${converted.toFixed(2)}`;
+}
+
+async function fetchFxRates() {
+  try {
+    const res  = await fetch('https://open.er-api.com/v6/latest/GBP');
+    const data = await res.json();
+    if(data.rates) {
+      FX.USD = parseFloat(data.rates.USD.toFixed(4));
+      FX.EUR = parseFloat(data.rates.EUR.toFixed(4));
+      FX.AUD = parseFloat(data.rates.AUD.toFixed(4));
+    }
+  } catch(e) {
+    // Keep fallback rates
+  }
+}
+
+function setCurrency(cur, btn) {
+  currency = cur;
+  document.querySelectorAll('#currency-tabs .tf-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+  // Also update any open detail sheet
+  if(document.getElementById('detail-sheet').classList.contains('open')) {
+    updateSheetCurrency();
+  }
+}
+
+// Stores last opened card for currency re-render
+let _lastOpenCard = null;
+
+function updateSheetCurrency() {
+  if(!_lastOpenCard) return;
+  const card = _lastOpenCard;
+  document.getElementById('ds-price').textContent = fmt(card.price);
+  document.getElementById('ds-high').textContent  = fmt(card.high);
+  document.getElementById('ds-low').textContent   = fmt(card.low);
+}
+
+function rnd(max) { return parseFloat(((Math.random()-0.5)*max*2).toFixed(1)); }
+
+function genData() {
+  const r = {1:4,'1H':4,'24H':15,'7D':35,'30D':60}[tf]||15;
+  return CARDS.map(c => ({
+    ...c,
+    kind: 'single',
+    price: parseFloat((c.base*(0.88+Math.random()*0.24)).toFixed(2)),
+    pct: rnd(r),
+    vol: Math.floor(Math.random()*60)+4,
+    high: parseFloat((c.base*1.1+Math.random()*c.base*0.15).toFixed(2)),
+    low: parseFloat((c.base*0.85-Math.random()*c.base*0.08).toFixed(2)),
+  }));
+}
+
+function genSealedData() {
+  const r = {1:2,'1H':2,'24H':8,'7D':20,'30D':35}[tf]||8;
+  return SEALED.map(s => {
+    const price = parseFloat((s.base*(0.9+Math.random()*0.2)).toFixed(2));
+    const vsRrp = parseFloat(((price - s.rrp)/s.rrp*100).toFixed(1));
+    return {
+      ...s,
+      price,
+      pct:   rnd(r),
+      vol:   Math.floor(Math.random()*30)+2,
+      high:  parseFloat((price*1.08).toFixed(2)),
+      low:   parseFloat((price*0.93).toFixed(2)),
+      vsRrp,
+    };
+  });
+}
+
+function setView(mode, btn) {
+  viewMode = mode;
+  document.querySelectorAll('.tf-tabs:first-child .tf-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  buildSets();
+  render();
+  // Update count label
+  const label = {singles:'Singles', sealed:'Sealed', all:'Items'}[mode];
+  document.getElementById('s-count-label').textContent = label;
+}
+
+function getActiveData() {
+  if(viewMode === 'singles') return data;
+  if(viewMode === 'sealed')  return sealedData;
+  return [...data, ...sealedData];
+}
+
+// ── BUBBLE SIZE ───────────────────────────────
+function bSize(cap, stageW) {
+  const base = Math.min(stageW * 0.15, 56);
+  return base + (cap/100)*base*1.1;
+}
+
+// ── PACK ──────────────────────────────────────
+function pack(items, W, H) {
+  const pos = [];
+  items.forEach((c,i) => {
+    const r = bSize(c.cap, W)/2;
+    let placed=false, tries=0;
+    while(!placed && tries<400){
+      const x = r+4+Math.random()*(W-r*2-8);
+      const y = r+4+Math.random()*(H-r*2-8);
+      const ok = !pos.some(p=>{const dx=p.x-x,dy=p.y-y;return Math.sqrt(dx*dx+dy*dy)<p.r+r+3;});
+      if(ok){pos.push({x,y,r});placed=true;}
+      tries++;
+    }
+    if(!placed) pos.push({x:r+4+Math.random()*(W-r*2-8),y:r+4+Math.random()*(H-r*2-8),r});
+  });
+  return pos;
+}
+
+// ── RENDER ────────────────────────────────────
+function render() {
+  const stage = document.getElementById('stage');
+  const tooltip = document.getElementById('tooltip');
+  const W = stage.offsetWidth, H = stage.offsetHeight;
+
+  // clear bubbles only
+  stage.querySelectorAll('.bubble').forEach(b=>b.remove());
+
+  const allActive = getActiveData();
+  const filtered = activeSet==='ALL' ? allActive : allActive.filter(c=>c.set===activeSet);
+  const sorted = [...filtered].sort((a,b)=>b.cap-a.cap);
+  const pos = pack(sorted, W, H);
+
+  sorted.forEach((card, i) => {
+    const p = pos[i];
+    const sz = bSize(card.cap, W);
+    const dir = card.pct>0.4?'up':card.pct<-0.4?'down':'flat';
+    const clr = dir==='up'?'var(--up)':dir==='down'?'var(--down)':'var(--flat)';
+    const delay = i*0.03;
+    const big = sz > 75;
+
+    const isSealed = card.kind === 'sealed';
+    const sealedClass = isSealed ? `sealed-${dir}` : `${dir}${big?' big':''}`;
+    const el = document.createElement('div');
+    el.className = `bubble ${isSealed ? sealedClass : dir+(big?' big':'')}`;
+    el.style.cssText = `width:${sz}px;height:${sz}px;left:${p.x-sz/2}px;top:${p.y-sz/2}px;z-index:${Math.round(card.cap)};animation-delay:${delay}s;`;
+
+    const showSet = sz>65;
+    const showPrice = sz>72;
+
+    const nfs = sz>90?12:sz>70?10:sz>55?9:8;
+    const pfs = sz>90?12:sz>70?11:sz>55?10:9;
+
+    const imgUrl = !isSealed ? getCardImg(card.name, card.set) : null;
+    const showImg = imgUrl && sz > 80;
+    const sealedEmoji = {ETB:'📦','JP ETB':'🇯🇵',Box:'📦',Pack:'🃏'}[card.type] || '📦';
+
+    if(isSealed) {
+      // Sealed product bubble — box shape, emoji, vs RRP
+      const vsRrpStr = card.vsRrp !== undefined
+        ? (card.vsRrp >= 0 ? `+${card.vsRrp}% RRP` : `${card.vsRrp}% RRP`)
+        : '';
+      el.innerHTML = `
+        ${showSet?`<span class="b-set" style="font-size:7px">${card.type}</span>`:''}
+        ${sz>60?`<span class="sealed-icon">${sealedEmoji}</span>`:''}
+        <span class="b-name" style="font-size:${nfs}px">${card.name.replace(' ETB','').replace(' Box','')}</span>
+        <span class="b-pct" style="font-size:${pfs}px;color:${clr}">${card.pct>=0?'+':''}${card.pct}%</span>
+        ${showPrice&&vsRrpStr?`<span class="b-vs-rrp">${vsRrpStr}</span>`:''}
+        ${showPrice?`<span class="b-price" style="font-size:8px">${fmt(card.price)}</span>`:''}
+      `;
+    } else if(showImg) {
+      // Card image bubble
+      el.style.backgroundImage = `url(${imgUrl})`;
+      el.style.backgroundSize = 'cover';
+      el.style.backgroundPosition = 'center top';
+      el.innerHTML = `
+        <div style="position:absolute;inset:0;border-radius:50%;background:linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 50%, transparent 100%);pointer-events:none;"></div>
+        <div style="position:absolute;bottom:8px;left:0;right:0;text-align:center;padding:0 4px;">
+          <div style="font-size:${nfs}px;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.9);line-height:1.1;">${card.name}</div>
+          <div style="font-size:${pfs}px;font-family:'DM Mono',monospace;font-weight:700;color:${clr};margin-top:1px;">${card.pct>=0?'+':''}${card.pct}%</div>
+        </div>
+      `;
+    } else {
+      // Text bubble
+      el.innerHTML = `
+        ${showSet?`<span class="b-set" style="font-size:7px">${card.set}</span>`:''}
+        <span class="b-name" style="font-size:${nfs}px">${card.name}</span>
+        <span class="b-pct" style="font-size:${pfs}px;color:${clr}">${card.pct>=0?'+':''}${card.pct}%</span>
+        ${showPrice?`<span class="b-price" style="font-size:8px">${fmt(card.price)}</span>`:''}
+      `;
+    }
+
+    // tap → detail sheet
+    el.addEventListener('click', ()=>{
+      openSheet(card);
+    });
+
+    stage.appendChild(el);
+  });
+
+  updateStats(filtered);
+}
+
+// ── STATS ─────────────────────────────────────
+function updateStats(visible) {
+  if(!visible) visible = activeSet==='ALL'?data:data.filter(c=>c.set===activeSet);
+  const g = visible.filter(c=>c.pct>0).length;
+  const l = visible.filter(c=>c.pct<0).length;
+  const top = visible.reduce((a,b)=>b.pct>a.pct?b:a, visible[0]||{pct:0,name:'—'});
+  const avg = visible.reduce((s,c)=>s+c.pct,0)/(visible.length||1);
+  document.getElementById('s-count').textContent = visible.length;
+  document.getElementById('s-gainers').textContent = g;
+  document.getElementById('s-losers').textContent = l;
+  document.getElementById('s-top').textContent = top.pct>=0?`+${top.pct}%`:`${top.pct}%`;
+  document.getElementById('s-avg').textContent = `${avg>=0?'+':''}${avg.toFixed(1)}%`;
+}
+
+// ── SET FILTER ────────────────────────────────
+function buildSets(){
+  const sourceData = viewMode === 'singles' ? CARDS
+                   : viewMode === 'sealed'  ? SEALED
+                   : [...CARDS, ...SEALED];
+  const sets = [...new Set(sourceData.map(c=>c.set))];
+  const el = document.getElementById('set-tabs');
+  el.innerHTML='<button class="set-tab active" onclick="filterSet(\'ALL\',this)">ALL</button>';
+  sets.forEach(s=>{
+    const b=document.createElement('button');
+    b.className='set-tab';
+    b.textContent=s;
+    b.onclick=function(){filterSet(s,this);};
+    el.appendChild(b);
+  });
+}
+
+function filterSet(s, btn){
+  activeSet=s;
+  document.querySelectorAll('.set-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function setTF(t, btn){
+  tf=t;
+  // Only deactivate TF tabs (second tab group), not view mode tabs
+  document.querySelectorAll('.tf-tabs:last-of-type .tf-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  data=genData();
+  sealedData=genSealedData();
+  render();
+}
+
+// ── DETAIL SHEET ──────────────────────────────
+function openSheet(card){
+  const dir = card.pct>=0?'up':'down';
+  const clr = dir==='up'?'var(--up)':'var(--down)';
+  const isSealed = card.kind === 'sealed';
+
+  // Image handling — fetch async and show when ready
+  const imgWrap = document.getElementById('ds-img-wrap');
+  const imgEl   = document.getElementById('ds-img');
+  imgWrap.style.display = 'none';  // hide initially
+
+  if(!isSealed) {
+    // Check cache first
+    const cachedUrl = getCardImg(card.name, card.set);
+    if(cachedUrl) {
+      imgEl.src = cachedUrl;
+      imgWrap.style.display = 'block';
+    } else {
+      // Fetch async — show when loaded
+      fetchCardImg(card.name, card.set).then(url => {
+        if(url && document.getElementById('detail-sheet').classList.contains('open')) {
+          imgEl.src = url;
+          imgWrap.style.display = 'block';
+        }
+      });
+    }
+  }
+
+  // Update labels for sealed vs singles
+  if(isSealed) {
+    document.getElementById('ds-rarity-label').textContent = 'Product Type';
+    document.getElementById('ds-vol-label').textContent    = 'Active Listings';
+    document.getElementById('ds-extra-label').textContent  = 'vs RRP';
+    document.getElementById('ds-price-label').textContent  = 'eBay Avg (sealed)';
+  } else {
+    document.getElementById('ds-rarity-label').textContent = 'Rarity';
+    document.getElementById('ds-vol-label').textContent    = 'Sales (24H)';
+    document.getElementById('ds-extra-label').textContent  = 'Trend';
+    document.getElementById('ds-price-label').textContent  = 'Price (eBay avg)';
+  }
+  document.getElementById('ds-name').textContent = card.name;
+  document.getElementById('ds-set').textContent = `${card.set} · ${card.rarity}`;
+  document.getElementById('ds-pct').textContent = `${card.pct>=0?'+':''}${card.pct}%`;
+  document.getElementById('ds-pct').style.color = clr;
+  document.getElementById('ds-tf').textContent = tf+' CHANGE';
+  document.getElementById('ds-price').textContent = `£${card.price}`;
+  document.getElementById('ds-rarity').textContent = card.rarity;
+  document.getElementById('ds-high').textContent = `£${card.high}`;
+  document.getElementById('ds-low').textContent = `£${card.low}`;
+  document.getElementById('ds-vol').textContent = `${card.vol} sold`;
+  if(card.kind === 'sealed') {
+    const vsRrp = card.vsRrp !== undefined ? card.vsRrp : 0;
+    const rrpStr = (vsRrp >= 0 ? '+' : '') + vsRrp.toFixed(1) + '%';
+    const rrpIcon = vsRrp > 15 ? '📈 Above RRP' : vsRrp >= 0 ? '✅ Slight premium' : '💸 Below RRP';
+    document.getElementById('ds-trend').textContent = rrpStr + '  ' + rrpIcon;
+    document.getElementById('ds-rarity').textContent = card.type || '—';
+  } else {
+    const trend = card.pct>5?'🔥 Hot':card.pct>0?'↑ Rising':card.pct<-5?'🔻 Dump':'→ Flat';
+    document.getElementById('ds-trend').textContent = trend;
+    document.getElementById('ds-rarity').textContent = card.rarity || '—';
+  }
+
+  const alertBtn = document.getElementById('ds-alert-btn');
+  alertBtn.onclick = ()=>{ alertBtn.textContent='✅ Alert Set!'; alertBtn.style.background='rgba(0,240,160,0.2)'; alertBtn.style.color='var(--up)'; alertBtn.style.border='1px solid rgba(0,240,160,0.3)'; };
+
+  document.getElementById('detail-sheet').classList.add('open');
+}
+
+function closeSheet(){
+  document.getElementById('detail-sheet').classList.remove('open');
+  document.getElementById('ds-alert-btn').textContent='🔔 Set Alert';
+  document.getElementById('ds-alert-btn').style='';
+}
+
+// ── MINI APP OPEN/CLOSE ───────────────────────
+function openMarket(){
+  document.getElementById('user-msg').style.display='flex';
+  setTimeout(()=>{
+    document.getElementById('market-reply').style.display='flex';
+    const chat = document.getElementById('chat');
+    chat.scrollTop=chat.scrollHeight;
+  },400);
+  setTimeout(()=>{
+    document.getElementById('miniapp').classList.add('open');
+    data=genData();buildSets();render();
+  },900);
+}
+
+function closeMarket(){
+  closeSheet();
+  document.getElementById('miniapp').classList.remove('open');
+}
+
+function showPriceMsg(){
+  // just a teaser
+  const chat = document.getElementById('chat');
+  const row = document.createElement('div');
+  row.className='msg-row user';
+  row.innerHTML='<div><div class="msg-bubble">/price Charizard ex 151</div><div class="msg-time">09:42</div></div>';
+  chat.appendChild(row);
+
+  setTimeout(()=>{
+    const reply = document.createElement('div');
+    reply.className='msg-row bot';
+    reply.innerHTML=`<div class="msg-avatar">⬡</div><div><div class="msg-bubble">
+      🃏 <strong>Charizard ex — 151 (UR)</strong><br>
+      <span style="color:var(--up);font-family:'DM Mono',monospace;font-weight:700;">£84.50 avg sold</span><br>
+      <span style="font-size:12px;color:var(--muted)">24H: +6.2% · 31 sales · High £91 · Low £78</span><br><br>
+      <span style="font-size:12px">🔥 Trending up — 3 day momentum</span>
+    </div><div class="msg-time">09:42</div></div>`;
+    chat.appendChild(reply);
+    chat.scrollTop=chat.scrollHeight;
+  },700);
+
+  chat.scrollTop=chat.scrollHeight;
+}
+
+
+// ── PORTFOLIO ─────────────────────────────────────────────────────────────────
+// Stored in window.storage (persistent across sessions via Claude artifact API)
+// Falls back to localStorage if storage API not available
+// Tier check: must be Trader, Pro or Elite to use portfolio
+
+// Simulated tier — in production this comes from Telegram.WebApp.initDataUnsafe
+// Your backend validates the real tier when data is sent
+let USER_TIER = 'free'; // overridden by Telegram.WebApp data in production
+
+// Try to get tier from Telegram WebApp init data
+try {
+  const tg = window.Telegram?.WebApp;
+  if(tg && tg.initDataUnsafe?.user) {
+    // In production: fetch tier from your backend using tg.initDataUnsafe.user.id
+    // For demo we simulate a paid tier
+    USER_TIER = 'trader'; // replace with backend call
+  }
+} catch(e) {}
+
+function isPaidTier() {
+  return ['trader','pro','elite'].includes(USER_TIER);
+}
+
+// ── STORAGE HELPERS ───────────────────────────────────────────────────────────
+
+async function savePortfolio(holdings) {
+  try {
+    await window.storage.set('holooracle-portfolio', JSON.stringify(holdings));
+  } catch(e) {
+    try { localStorage.setItem('holooracle-portfolio', JSON.stringify(holdings)); } catch(_) {}
+  }
+}
+
+async function loadPortfolio() {
+  try {
+    const result = await window.storage.get('holooracle-portfolio');
+    return result ? JSON.parse(result.value) : [];
+  } catch(e) {
+    try {
+      const saved = localStorage.getItem('holooracle-portfolio');
+      return saved ? JSON.parse(saved) : [];
+    } catch(_) { return []; }
+  }
+}
+
+let portfolio = []; // [{id, name, set, rarity, qty, costPaid, addedAt, kind}]
+
+// ── OPEN / CLOSE ──────────────────────────────────────────────────────────────
+
+async function openPortfolio() {
+  document.getElementById('portfolio-panel').classList.add('open');
+  portfolio = await loadPortfolio();
+  renderPortfolio();
+}
+
+function closePortfolio() {
+  document.getElementById('portfolio-panel').classList.remove('open');
+}
+
+// ── RENDER PORTFOLIO ──────────────────────────────────────────────────────────
+
+function renderPortfolio() {
+  const gate    = document.getElementById('port-gate');
+  const list    = document.getElementById('port-list');
+  const summary = document.getElementById('port-summary');
+  const empty   = document.getElementById('port-empty');
+  const countEl = document.getElementById('port-item-count');
+
+  if(!isPaidTier()) {
+    gate.style.display    = 'flex';
+    list.style.display    = 'none';
+    summary.style.display = 'none';
+    return;
+  }
+
+  gate.style.display    = 'none';
+  list.style.display    = 'flex';
+
+  countEl.textContent = `${portfolio.length} item${portfolio.length !== 1 ? 's' : ''}`;
+
+  if(portfolio.length === 0) {
+    empty.style.display   = 'flex';
+    summary.style.display = 'none';
+    return;
+  }
+
+  empty.style.display   = 'none';
+  summary.style.display = 'grid';
+
+  // Clear existing holding cards (keep empty div)
+  const existing = list.querySelectorAll('.holding-card');
+  existing.forEach(el => el.remove());
+
+  let totalCurrentVal = 0;
+  let totalCostBasis  = 0;
+
+  portfolio.forEach((holding, idx) => {
+    // Find current price from active data
+    const allItems = [...data, ...sealedData];
+    const match    = allItems.find(c =>
+      c.name.toLowerCase() === holding.name.toLowerCase() &&
+      c.set.toLowerCase()  === holding.set.toLowerCase()
+    );
+
+    const currentPriceGbp = match ? match.price : holding.costPaid;
+    const currentVal      = currentPriceGbp * holding.qty;
+    const costTotal       = holding.costPaid * holding.qty;
+    const pnl             = currentVal - costTotal;
+    const pnlPct          = costTotal > 0 ? (pnl / costTotal * 100) : 0;
+
+    totalCurrentVal += currentVal;
+    totalCostBasis  += costTotal;
+
+    const pnlClass  = pnl >= 0 ? 'pos' : 'neg';
+    const pnlSign   = pnl >= 0 ? '+' : '';
+    const borderClr = pnl >= 0 ? 'var(--up)' : 'var(--down)';
+
+    const card = document.createElement('div');
+    card.className  = 'holding-card';
+    card.style.setProperty('--hc', borderClr);
+
+    const imgKey = holding.name + '-' + holding.set;
+    const imgUrl = imgCache[imgKey];
+
+    card.innerHTML = `
+      ${imgUrl
+        ? `<img class="holding-img" src="${imgUrl}" onerror="this.style.display='none'">`
+        : `<div class="holding-img-placeholder">${holding.kind==='sealed'?'📦':'🃏'}</div>`
+      }
+      <div class="holding-info">
+        <div class="holding-name">${holding.name}</div>
+        <div class="holding-set">${holding.set} · ${holding.rarity || holding.type || ''}</div>
+        <div class="holding-row">
+          <span class="holding-qty">×${holding.qty}</span>
+          <span class="holding-cost">paid ${fmt(holding.costPaid)}</span>
+        </div>
+      </div>
+      <div class="holding-right">
+        <div class="holding-current">${fmt(currentPriceGbp)}</div>
+        <div class="holding-pnl ${pnlClass}">${pnlSign}${fmt(pnl)} (${pnlSign}${pnlPct.toFixed(1)}%)</div>
+      </div>
+      <div class="holding-del" onclick="removeFromPortfolio(${idx})">🗑</div>
+    `;
+
+    list.appendChild(card);
+
+    // Fetch image if not cached
+    if(!imgUrl && holding.kind !== 'sealed') {
+      fetchCardImg(holding.name, holding.set).then(url => {
+        if(url) {
+          const placeholder = card.querySelector('.holding-img-placeholder');
+          if(placeholder) {
+            const img = document.createElement('img');
+            img.className = 'holding-img';
+            img.src       = url;
+            img.onerror   = () => img.style.display = 'none';
+            placeholder.replaceWith(img);
+          }
+        }
+      });
+    }
+  });
+
+  // Update summary
+  const totalPnl    = totalCurrentVal - totalCostBasis;
+  const pnlSign     = totalPnl >= 0 ? '+' : '';
+  const pnlClass    = totalPnl >= 0 ? 'var(--up)' : 'var(--down)';
+
+  document.getElementById('port-total-val').textContent  = fmt(totalCurrentVal);
+  document.getElementById('port-cost-basis').textContent = fmt(totalCostBasis);
+  document.getElementById('port-pnl').textContent        = `${pnlSign}${fmt(totalPnl)}`;
+  document.getElementById('port-pnl').style.color        = pnlClass;
+}
+
+// ── ADD TO PORTFOLIO ──────────────────────────────────────────────────────────
+
+let _sellMode = false;
+
+function toggleAddPortfolio() {
+  if(!isPaidTier()) { triggerUpgrade(); return; }
+  const row     = document.getElementById('add-port-row');
+  const btn     = document.getElementById('ds-port-btn');
+  const visible = row.style.display !== 'none';
+  row.style.display = visible ? 'none' : 'block';
+  btn.textContent   = visible ? '💼 Track' : '✕ Cancel';
+  _sellMode = false;
+  document.getElementById('sell-row').style.display = 'none';
+  document.getElementById('add-port-action-btn').textContent = '+ Buy';
+  if(!visible && _lastOpenCard) {
+    document.getElementById('port-cost').value = _lastOpenCard.price.toFixed(2);
+    document.getElementById('port-qty').focus();
+  }
+}
+
+function toggleSellMode() {
+  _sellMode = !_sellMode;
+  const sellRow = document.getElementById('sell-row');
+  const addBtn  = document.getElementById('add-port-action-btn');
+  const togBtn  = document.getElementById('sell-toggle-btn');
+  sellRow.style.display = _sellMode ? 'flex' : 'none';
+  addBtn.textContent    = _sellMode ? '✅ Record Sale' : '+ Buy';
+  togBtn.textContent    = _sellMode ? '✕ Cancel' : '💰 Sell';
+  if(_sellMode && _lastOpenCard) {
+    document.getElementById('port-sell').value = _lastOpenCard.price.toFixed(2);
+  }
+}
+
+async function addToPortfolio() {
+  if(!_lastOpenCard) return;
+  if(!isPaidTier()) { triggerUpgrade(); return; }
+
+  const qty       = parseInt(document.getElementById('port-qty').value)    || 1;
+  const buyPrice  = parseFloat(document.getElementById('port-cost').value)  || _lastOpenCard.price;
+  const sellPrice = parseFloat(document.getElementById('port-sell').value);
+  const platform  = document.getElementById('port-platform')?.value || 'eBay';
+
+  if(_sellMode && sellPrice) {
+    // Record a completed sale
+    const pnl      = (sellPrice - buyPrice) * qty;
+    const pnlSign  = pnl >= 0 ? '+' : '';
+    const sym      = {GBP:'£',USD:'$',EUR:'€'}[currency] || '£';
+    const rate     = currency === 'GBP' ? 1.0 : (FX[currency] || 1.0);
+
+    // Send to bot backend via WebApp
+    try {
+      const tg = window.Telegram?.WebApp;
+      if(tg) tg.sendData(JSON.stringify({
+        action:'add_holding',
+        holding:{
+          id:`${_lastOpenCard.name}-${_lastOpenCard.set}-${Date.now()}`,
+          name:_lastOpenCard.name, set:_lastOpenCard.set,
+          rarity:_lastOpenCard.rarity||'', kind:_lastOpenCard.kind||'single',
+          qty, costPaid:buyPrice, sellPrice, platform,
+          addedAt:new Date().toISOString(), sold:true,
+        }
+      }));
+    } catch(e){}
+
+    const btn = document.getElementById('ds-port-btn');
+    btn.textContent = `✅ ${pnlSign}${sym}${(pnl*rate).toFixed(2)}`;
+    btn.style.color = pnl >= 0 ? 'var(--up)' : 'var(--down)';
+    document.getElementById('add-port-row').style.display = 'none';
+    _sellMode = false;
+    setTimeout(() => { btn.textContent='💼 Track'; btn.style.color=''; }, 3000);
+    return;
+  }
+
+  // Add as holding (buy)
+  const holding = {
+    id:      `${_lastOpenCard.name}-${_lastOpenCard.set}-${Date.now()}`,
+    name:    _lastOpenCard.name,
+    set:     _lastOpenCard.set,
+    rarity:  _lastOpenCard.rarity || '',
+    type:    _lastOpenCard.type   || '',
+    kind:    _lastOpenCard.kind   || 'single',
+    qty,
+    costPaid: buyPrice,
+    addedAt:  new Date().toISOString(),
+  };
+
+  portfolio = await loadPortfolio();
+  portfolio.push(holding);
+  await savePortfolio(portfolio);
+
+  // Send to bot
+  try {
+    const tg = window.Telegram?.WebApp;
+    if(tg) tg.sendData(JSON.stringify({action:'add_holding', holding}));
+  } catch(e){}
+
+  const btn = document.getElementById('ds-port-btn');
+  btn.textContent = '✅ Added!';
+  btn.style.color = 'var(--up)';
+  document.getElementById('add-port-row').style.display = 'none';
+  setTimeout(() => { btn.textContent='💼 Track'; btn.style.color=''; }, 2000);
+}
+
+async function removeFromPortfolio(idx) {
+  portfolio = await loadPortfolio();
+  portfolio.splice(idx, 1);
+  await savePortfolio(portfolio);
+  renderPortfolio();
+}
+
+// ── UPGRADE TRIGGER ───────────────────────────────────────────────────────────
+
+function triggerUpgrade() {
+  // In production this opens the Telegram Stars payment via Bot API
+  // For now sends a message back to the bot
+  try {
+    const tg = window.Telegram?.WebApp;
+    if(tg) {
+      tg.sendData(JSON.stringify({action: 'upgrade', feature: 'portfolio'}));
+    }
+  } catch(e) {}
+
+  // Show a visual prompt regardless
+  closePortfolio();
+  alert('To use Portfolio Tracker, upgrade to Trader, Pro or Elite.\n\nUse /upgrade in the bot to subscribe.');
+}
+
+// Auto refresh bubbles every 25s
+setInterval(()=>{
+  if(document.getElementById('miniapp').classList.contains('open')){
+    data=genData();render();
+  }
+},25000);
+
+window.addEventListener('resize',()=>{
+  if(document.getElementById('miniapp').classList.contains('open')) render();
+});
+</script>
+</body>
+</html>
