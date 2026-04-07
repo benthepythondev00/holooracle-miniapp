@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>HoloOracle · TCG Market</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bebas+Neue&family=Inter:wght@400;500;600;700;900&display=swap');
 
@@ -1904,12 +1905,14 @@ let USER_TIER = 'free';
 try {
   const tg = window.Telegram?.WebApp;
   if(tg) {
+    tg.ready();
+    tg.expand();
     // Running inside Telegram — enable portfolio UI.
     // The bot backend validates the actual tier on every sendData() call.
-    const userId = tg.initDataUnsafe?.user?.id;
+    const userId = Number(tg.initDataUnsafe?.user?.id || 0);
     if(userId === ADMIN_USER_ID) {
       USER_TIER = 'elite';
-    } else if(tg.initData || tg.initDataUnsafe?.user) {
+    } else if(userId > 0 || tg.initData) {
       // User opened via Telegram — show portfolio UI, backend enforces tier
       USER_TIER = 'trader';
     }
