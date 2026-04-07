@@ -1894,17 +1894,25 @@ function showPriceMsg(){
 // Falls back to localStorage if storage API not available
 // Tier check: must be Trader, Pro or Elite to use portfolio
 
-// Simulated tier — in production this comes from Telegram.WebApp.initDataUnsafe
-// Your backend validates the real tier when data is sent
-let USER_TIER = 'free'; // overridden by Telegram.WebApp data in production
+// Tier detection — the backend enforces real tier checks when sendData() is called.
+// The Mini App UI shows portfolio features when opened inside Telegram so users can
+// browse their holdings. If a non-subscribed user tries to add a card, the bot's
+// handle_miniapp_data handler will respond with an upgrade prompt.
+const ADMIN_USER_ID = 6104274881;
+let USER_TIER = 'free';
 
-// Try to get tier from Telegram WebApp init data
 try {
   const tg = window.Telegram?.WebApp;
-  if(tg && tg.initDataUnsafe?.user) {
-    // In production: fetch tier from your backend using tg.initDataUnsafe.user.id
-    // For demo we simulate a paid tier
-    USER_TIER = 'trader'; // replace with backend call
+  if(tg) {
+    // Running inside Telegram — enable portfolio UI.
+    // The bot backend validates the actual tier on every sendData() call.
+    const userId = tg.initDataUnsafe?.user?.id;
+    if(userId === ADMIN_USER_ID) {
+      USER_TIER = 'elite';
+    } else if(tg.initData || tg.initDataUnsafe?.user) {
+      // User opened via Telegram — show portfolio UI, backend enforces tier
+      USER_TIER = 'trader';
+    }
   }
 } catch(e) {}
 
